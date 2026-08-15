@@ -1,0 +1,46 @@
+name: Build CloakFlow APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout source code
+      uses: actions/checkout@v3
+
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Initialize Android Project Infrastructure
+      run: |
+        mkdir -p app/src/main/java/com/example/cloakflow
+        mkdir -p app/src/main/res/layout
+        mv DeviceSpoofer.java app/src/main/java/com/example/cloakflow/
+        mv AutomationEngine.java app/src/main/java/com/example/cloakflow/
+        mv SmsApiHandler.java app/src/main/java/com/example/cloakflow/
+        mv OcrScanner.java app/src/main/java/com/example/cloakflow/
+        mv LicenseManager.java app/src/main/java/com/example/cloakflow/
+        mv MainActivity.java app/src/main/java/com/example/cloakflow/
+        mv activity_main.xml app/src/main/res/layout/
+        
+    - name: Generate Build Configurations
+      run: |
+        echo "plugins { id 'com.android.application' }" > app/build.gradle
+        echo "android { compileSdk 34; defaultconfig { applicationId 'com.example.cloakflow'; minSdk 24; targetSdk 34; versionCode 1; versionName '1.0' } }" >> app/build.gradle
+        echo "dependencies { implementation 'com.squareup.okhttp3:okhttp:4.11.0'; implementation 'com.google.mlkit:text-recognition:16.0.0' }" >> app/build.gradle
+        
+    - name: Compile and Build APK
+      run: ./gradlew assembleDebug
+
+    - name: Upload Finished APK File
+      uses: actions/upload-artifact@v3
+      with:
+        name: CloakFlow-App
+        path: app/build/outputs/apk/debug/app-debug.apk
