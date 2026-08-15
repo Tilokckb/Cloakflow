@@ -1,4 +1,4 @@
-name: Build CloakFlow APK Secure
+name: Build CloakFlow APK AutoFix
 
 on:
   push:
@@ -18,33 +18,34 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Auto Create Full Android Project Infrastructure
+    - name: Auto Fix and Structure Project Files
       run: |
-        # ১. অ্যান্ড্রয়েড ডিরেক্টরি স্ট্রাকচার তৈরি
+        # ১. সঠিক ডিরেক্টরি তৈরি করা
         mkdir -p app/src/main/java/com/example/cloakflow
         mkdir -p app/src/main/res/layout
         mkdir -p app/src/main/res/values
         mkdir -p gradle/wrapper
 
-        # ২. ফাইলগুলো সঠিক ফোল্ডারে মুভ করা (যদি রুট ডিরেক্টরিতে থাকে)
-        [ -f DeviceSpoofer.java ] && mv DeviceSpoofer.java app/src/main/java/com/example/cloakflow/ || true
-        [ -f AutomationEngine.java ] && mv AutomationEngine.java app/src/main/java/com/example/cloakflow/ || true
-        [ -f SmsApiHandler.java ] && mv SmsApiHandler.java app/src/main/java/com/example/cloakflow/ || true
-        [ -f OcrScanner.java ] && mv OcrScanner.java app/src/main/java/com/example/cloakflow/ || true
-        [ -f LicenseManager.java ] && mv LicenseManager.java app/src/main/java/com/example/cloakflow/ || true
-        [ -f MainActivity.java ] && mv MainActivity.java app/src/main/java/com/example/cloakflow/ || true
+        # ২. প্রতিটি জাভা ফাইলে অটোমেটিক প্যাকেজের নাম যুক্ত করা
+        for file in AutomationEngine.java DeviceSpoofer.java LicenseManager.java MainActivity.java OcrScanner.java SmsApiHandler.java; do
+          if [ -f "$file" ]; then
+            echo "package com.example.cloakflow;" > tmp_file
+            cat "$file" >> tmp_file
+            mv tmp_file app/src/main/java/com/example/cloakflow/"$file"
+          fi
+        done
+
+        # ৩. লেআউট ফাইল মুভ করা
         [ -f activity_main.xml ] && mv activity_main.xml app/src/main/res/layout/ || true
 
-        # ৩. গ্র্যাডল বিল্ড ইঞ্জিন কনফিগারেশন তৈরি
+        # ৪. গ্র্যাডল ইঞ্জিন বেস কনফিগারেশন তৈরি
         echo "buildscript { repositories { google(); mavenCentral() }; dependencies { classpath 'com.android.tools.build:gradle:8.2.2' } }" > build.gradle
         echo "allprojects { repositories { google(); mavenCentral() } }" >> build.gradle
         echo "include ':app'" > settings.gradle
 
-        # ৪. অ্যাপ লেভেল গ্র্যাডল ডিপেন্ডেন্সি ইনজেকশন
+        # ৫. অ্যাপ লেভেল বিল্ড গ্র্যাডল জেনারেট করা
         cat << 'EOF' > app/build.gradle
-        plugins {
-            id 'com.android.application'
-        }
+        plugins { id 'com.android.application' }
         android {
             namespace 'com.example.cloakflow'
             compileSdk 34
@@ -55,11 +56,6 @@ jobs:
                 versionCode 1
                 versionName "1.0"
             }
-            buildTypes {
-                release {
-                    minifyEnabled false
-                }
-            }
         }
         dependencies {
             implementation 'androidx.appcompat:appcompat:1.6.1'
@@ -69,7 +65,7 @@ jobs:
         }
         EOF
 
-        # ৫. অফিসিয়াল অ্যান্ড্রোয়েড ম্যানিফেস্ট ও পারমিশন জেনারেশন
+        # ৬. অফিসিয়াল অ্যান্ড্রয়েড ম্যানিফেস্ট ও ব্যাকগ্রাউন্ড পারমিশন তৈরি
         cat << 'EOF' > app/src/main/AndroidManifest.xml
         <manifest xmlns:android="http://android.com">
             <uses-permission android:name="android.permission.INTERNET"/>
@@ -78,9 +74,7 @@ jobs:
                 android:allowBackup="true"
                 android:label="CloakFlow"
                 android:theme="@style/Theme.AppCompat.NoActionBar">
-                <activity
-                    android:name=".MainActivity"
-                    android:exported="true">
+                <activity android:name=".MainActivity" android:exported="true">
                     <intent-filter>
                         <action android:name="android.intent.action.MAIN" />
                         <category android:name="android.intent.category.LAUNCHER" />
@@ -90,14 +84,14 @@ jobs:
         </manifest>
         EOF
 
-        # ৬. থিম এবং কালার রিসোর্স ফিক্স
+        # ৭. থিম এবং কালার সেটিংস এরর ফিক্স করা
         echo '<resources><style name="Theme.CloakFlow" parent="Theme.AppCompat.NoActionBar"/></resources>' > app/src/main/res/values/themes.xml
         echo '<resources><string name="app_name">CloakFlow</string></resources>' > app/src/main/res/values/strings.xml
 
     - name: Initialize Local Gradle Wrapper
       run: gradle wrapper --gradle-version 8.5
 
-    - name: Run Build Compiler Engine
+    - name: Execute Compiler Engine
       run: ./gradlew assembleDebug
 
     - name: Upload Finished CloakFlow APK
