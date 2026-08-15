@@ -1,4 +1,4 @@
-name: Build CloakFlow APK
+name: Build CloakFlow APK Secure
 
 on:
   push:
@@ -9,38 +9,99 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - name: Checkout source code
-      uses: actions/checkout@v3
+    - name: Checkout Source Code
+      uses: actions/checkout@v4
 
     - name: Set up JDK 17
-      uses: actions/setup-java@v3
+      uses: actions/setup-java@v4
       with:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Initialize Android Project Infrastructure
+    - name: Auto Create Full Android Project Infrastructure
       run: |
+        # ১. অ্যান্ড্রয়েড ডিরেক্টরি স্ট্রাকচার তৈরি
         mkdir -p app/src/main/java/com/example/cloakflow
         mkdir -p app/src/main/res/layout
-        mv DeviceSpoofer.java app/src/main/java/com/example/cloakflow/
-        mv AutomationEngine.java app/src/main/java/com/example/cloakflow/
-        mv SmsApiHandler.java app/src/main/java/com/example/cloakflow/
-        mv OcrScanner.java app/src/main/java/com/example/cloakflow/
-        mv LicenseManager.java app/src/main/java/com/example/cloakflow/
-        mv MainActivity.java app/src/main/java/com/example/cloakflow/
-        mv activity_main.xml app/src/main/res/layout/
-        
-    - name: Generate Build Configurations
-      run: |
-        echo "plugins { id 'com.android.application' }" > app/build.gradle
-        echo "android { compileSdk 34; defaultconfig { applicationId 'com.example.cloakflow'; minSdk 24; targetSdk 34; versionCode 1; versionName '1.0' } }" >> app/build.gradle
-        echo "dependencies { implementation 'com.squareup.okhttp3:okhttp:4.11.0'; implementation 'com.google.mlkit:text-recognition:16.0.0' }" >> app/build.gradle
-        
-    - name: Compile and Build APK
+        mkdir -p app/src/main/res/values
+        mkdir -p gradle/wrapper
+
+        # ২. ফাইলগুলো সঠিক ফোল্ডারে মুভ করা (যদি রুট ডিরেক্টরিতে থাকে)
+        [ -f DeviceSpoofer.java ] && mv DeviceSpoofer.java app/src/main/java/com/example/cloakflow/ || true
+        [ -f AutomationEngine.java ] && mv AutomationEngine.java app/src/main/java/com/example/cloakflow/ || true
+        [ -f SmsApiHandler.java ] && mv SmsApiHandler.java app/src/main/java/com/example/cloakflow/ || true
+        [ -f OcrScanner.java ] && mv OcrScanner.java app/src/main/java/com/example/cloakflow/ || true
+        [ -f LicenseManager.java ] && mv LicenseManager.java app/src/main/java/com/example/cloakflow/ || true
+        [ -f MainActivity.java ] && mv MainActivity.java app/src/main/java/com/example/cloakflow/ || true
+        [ -f activity_main.xml ] && mv activity_main.xml app/src/main/res/layout/ || true
+
+        # ৩. গ্র্যাডল বিল্ড ইঞ্জিন কনফিগারেশন তৈরি
+        echo "buildscript { repositories { google(); mavenCentral() }; dependencies { classpath 'com.android.tools.build:gradle:8.2.2' } }" > build.gradle
+        echo "allprojects { repositories { google(); mavenCentral() } }" >> build.gradle
+        echo "include ':app'" > settings.gradle
+
+        # ৪. অ্যাপ লেভেল গ্র্যাডল ডিপেন্ডেন্সি ইনজেকশন
+        cat << 'EOF' > app/build.gradle
+        plugins {
+            id 'com.android.application'
+        }
+        android {
+            namespace 'com.example.cloakflow'
+            compileSdk 34
+            defaultConfig {
+                applicationId "com.example.cloakflow"
+                minSdk 24
+                targetSdk 34
+                versionCode 1
+                versionName "1.0"
+            }
+            buildTypes {
+                release {
+                    minifyEnabled false
+                }
+            }
+        }
+        dependencies {
+            implementation 'androidx.appcompat:appcompat:1.6.1'
+            implementation 'com.google.android.material:material:1.11.0'
+            implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+            implementation 'com.google.mlkit:text-recognition:16.0.0'
+        }
+        EOF
+
+        # ৫. অফিসিয়াল অ্যান্ড্রোয়েড ম্যানিফেস্ট ও পারমিশন জেনারেশন
+        cat << 'EOF' > app/src/main/AndroidManifest.xml
+        <manifest xmlns:android="http://android.com">
+            <uses-permission android:name="android.permission.INTERNET"/>
+            <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+            <application
+                android:allowBackup="true"
+                android:label="CloakFlow"
+                android:theme="@style/Theme.AppCompat.NoActionBar">
+                <activity
+                    android:name=".MainActivity"
+                    android:exported="true">
+                    <intent-filter>
+                        <action android:name="android.intent.action.MAIN" />
+                        <category android:name="android.intent.category.LAUNCHER" />
+                    </intent-filter>
+                </activity>
+            </application>
+        </manifest>
+        EOF
+
+        # ৬. থিম এবং কালার রিসোর্স ফিক্স
+        echo '<resources><style name="Theme.CloakFlow" parent="Theme.AppCompat.NoActionBar"/></resources>' > app/src/main/res/values/themes.xml
+        echo '<resources><string name="app_name">CloakFlow</string></resources>' > app/src/main/res/values/strings.xml
+
+    - name: Initialize Local Gradle Wrapper
+      run: gradle wrapper --gradle-version 8.5
+
+    - name: Run Build Compiler Engine
       run: ./gradlew assembleDebug
 
-    - name: Upload Finished APK File
-      uses: actions/upload-artifact@v3
+    - name: Upload Finished CloakFlow APK
+      uses: actions/upload-artifact@v4
       with:
-        name: CloakFlow-App
+        name: CloakFlow-App-Package
         path: app/build/outputs/apk/debug/app-debug.apk
