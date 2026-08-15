@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout 
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#121212">
+
+    <!-- Top Component Management Bar -->
+    <LinearLayout
+        android:id="@+id/top_bar_container"
+        android:layout_width="0dp"
+        android:layout_height="56dp"
+        android:background="#121212"
+        android:elevation="4dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:weightSum="6"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <!-- Button 1: Toggle View -->
+        <ImageButton
+            android:id="@+id/btn_toggle_view"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Toggle Rendering View"
+            android:padding="14dp"
+            android:scaleType="centerInside"
+            android:src="@android:drawable/ic_menu_view"
+            app:tint="#E0E0E0" />
+
+        <!-- Button 2: Force Home -->
+        <ImageButton
+            android:id="@+id/btn_force_home"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Force Home Route"
+            android:padding="14dp"
+            android:scaleType="centerInside"
+            android:src="@android:drawable/ic_menu_compass"
+            app:tint="#E0E0E0" />
+
+        <!-- Button 3: Extract UID / Profile Identifier -->
+        <ImageButton
+            android:id="@+id/btn_extract_uid"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Extract UID Profile"
+            android:padding="14dp"
+            android:scaleType="centerInside"
+            android:src="@android:drawable/ic_menu_myplaces"
+            app:tint="#E0E0E0" />
+
+        <!-- Button 4: Privacy Guard / Shield -->
+        <ImageButton
+            android:id="@+id/btn_privacy_guard"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Privacy Guard Security"
+            android:padding="14dp"
+            android:scaleType="centerInside"
+            android:src="@android:drawable/ic_lock_lock"
+            app:tint="#E0E0E0" />
+
+        <!-- Button 5: Cookie Collector / Export -->
+        <ImageButton
+            android:id="@+id/btn_export_cookies"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Export Session Cookies"
+            android:padding="14dp"
+            android:scaleType="centerInside"
+            android:src="@android:drawable/ic_menu_save"
+            app:tint="#E0E0E0" />
+
+        <!-- Button 6: Deep Clean / Trash Wipe -->
+        <ImageButton
+            android:id="@+id/btn_deep_clean"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Deep Clean Workspace"
+            android:padding="14dp"
+            android:scaleType="centerInside"
+            android:src="@android:drawable/ic_menu_delete"
+            app:tint="#E0E0E0" />
+
+    </LinearLayout>
+
+    <!-- Primary Viewport Container (WebView) -->
+    <WebView
+        android:id="@+id/main_webview"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#000000"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/top_bar_container" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
